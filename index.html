@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automata to Turing Machine Simulator</title>
+  <meta name="description" content="Convert DFA/NFA to Turing Machine and simulate execution with halting analysis and step-limited execution strategy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">⚙</span>
+        <div class="logo-text">
+          <span class="logo-title">TM Simulator</span>
+          <span class="logo-sub">Theory of Computation</span>
+        </div>
+      </div>
+      <nav class="nav-pills">
+        <a href="#converter" class="nav-link active" id="nav-converter">Converter</a>
+        <a href="#simulator" class="nav-link" id="nav-simulator">Simulator</a>
+        <a href="#theory" class="nav-link" id="nav-theory">Theory</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Theory of Computation — Project
+    </div>
+    <h1 class="hero-title">
+      Automata to <span class="gradient-text">Turing Machine</span><br/>
+      Simulator
+    </h1>
+    <p class="hero-subtitle">
+      Convert <strong>DFA / NFA</strong> to an equivalent <strong>Turing Machine</strong> and simulate execution with<br/>
+      step-by-step tape visualization and <em>Halting Problem</em> analysis.
+    </p>
+    <div class="hero-badges">
+      <span class="tag tag-green">✔ Exact result on HALT</span>
+      <span class="tag tag-red">✔ Exact result on REJECT</span>
+      <span class="tag tag-yellow">⚠ Bounded execution on LOOP</span>
+    </div>
+    <div class="scroll-hint">↓ Start Simulating</div>
+  </section>
+
+  <!-- ========================= CONVERTER SECTION ========================= -->
+  <section class="section" id="converter">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Step 1 — Define Your Automaton</h2>
+        <p class="section-desc">Configure a DFA or NFA and convert it to a Turing Machine</p>
+      </div>
+
+      <!-- Automaton Type Selection -->
+      <div class="card">
+        <div class="card-title">
+          <span class="card-icon">🔧</span> Automaton Type
+        </div>
+        <div class="toggle-group" id="automaton-type">
+          <button class="toggle-btn active" id="btn-dfa" onclick="selectType('dfa')">DFA</button>
+          <button class="toggle-btn" id="btn-nfa" onclick="selectType('nfa')">NFA</button>
+        </div>
+        <p class="type-description" id="type-desc">
+          <strong>Deterministic Finite Automaton (DFA):</strong> Each state has exactly one transition per input symbol. Converted to a TM that reads and moves right, halting upon acceptance or rejection.
+        </p>
+      </div>
+
+      <!-- DFA/NFA Builder -->
+      <div class="card" id="automaton-builder">
+        <div class="card-title">
+          <span class="card-icon">📐</span> Automaton Definition
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="inp-states">States (comma-separated)</label>
+            <input class="input" type="text" id="inp-states" placeholder="q0, q1, q2" value="q0, q1, q2" />
+          </div>
+          <div class="form-group">
+            <label for="inp-alphabet">Alphabet (comma-separated)</label>
+            <input class="input" type="text" id="inp-alphabet" placeholder="0, 1" value="0, 1" />
+          </div>
+          <div class="form-group">
+            <label for="inp-start">Start State</label>
+            <input class="input" type="text" id="inp-start" placeholder="q0" value="q0" />
+          </div>
+          <div class="form-group">
+            <label for="inp-accept">Accept States (comma-separated)</label>
+            <input class="input" type="text" id="inp-accept" placeholder="q2" value="q2" />
+          </div>
+        </div>
+
+        <!-- Transition Table -->
+        <div class="form-group mt-20">
+          <label>Transition Function (δ)</label>
+          <p class="hint">Format: <code>currentState, symbol → nextState(s)</code> — one per line. For NFA, separate multiple states with <code>|</code></p>
+          <textarea class="textarea" id="inp-transitions" rows="6" placeholder="q0, 0 → q1
+q0, 1 → q0
+q1, 0 → q1
+q1, 1 → q2
+q2, 0 → q2
+q2, 1 → q2">q0, 0 → q1
+q0, 1 → q0
+q1, 0 → q1
+q1, 1 → q2
+q2, 0 → q2
+q2, 1 → q2</textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="parseAutomaton()">
+            <span>⚡</span> Convert to Turing Machine
+          </button>
+          <button class="btn btn-ghost" onclick="loadExample()">
+            <span>📋</span> Load Example
+          </button>
+          <button class="btn btn-ghost btn-loop" onclick="loadLoopExample()">
+            <span>⚠</span> Load Loop Example
+          </button>
+        </div>
+      </div>
+
+      <!-- Conversion Result -->
+      <div class="card hidden" id="conversion-result">
+        <div class="card-title">
+          <span class="card-icon">✅</span> Generated Turing Machine
+        </div>
+        <div class="tm-definition" id="tm-definition"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="goToSimulator()">
+            <span>▶</span> Go to Simulator
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= SIMULATOR SECTION ========================= -->
+  <section class="section" id="simulator">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Step 2 — Simulate the Turing Machine</h2>
+        <p class="section-desc">Enter an input string and run the TM step-by-step</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="card-icon">🎯</span> Input Configuration
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="inp-string">Input String</label>
+            <input class="input mono" type="text" id="inp-string" placeholder="011" value="011" />
+          </div>
+          <div class="form-group">
+            <label for="inp-steps">Max Step Limit <span class="hint-inline">(Halting Guard)</span></label>
+            <input class="input" type="number" id="inp-steps" value="100" min="10" max="10000" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-success" id="btn-run" onclick="runSimulation()">
+            <span>▶</span> Run Simulation
+          </button>
+          <button class="btn btn-ghost" id="btn-step" onclick="stepSimulation()">
+            <span>⏭</span> Step-by-Step
+          </button>
+          <button class="btn btn-ghost" id="btn-reset" onclick="resetSimulation()">
+            <span>🔄</span> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Tape Visualization -->
+      <div class="card" id="tape-card">
+        <div class="card-title">
+          <span class="card-icon">📼</span> Tape Visualization
+          <span class="step-counter" id="step-counter">Step 0</span>
+        </div>
+        <div class="tape-wrapper">
+          <div class="tape-track" id="tape-display"></div>
+        </div>
+        <div class="state-row">
+          <div class="state-pill" id="curr-state-pill">
+            Current State: <strong id="curr-state">—</strong>
+          </div>
+          <div class="state-pill" id="head-pos-pill">
+            Head Position: <strong id="head-pos">—</strong>
+          </div>
+          <div class="state-pill" id="direction-pill">
+            Movement: <strong id="direction">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step Log -->
+      <div class="card" id="log-card">
+        <div class="card-title">
+          <span class="card-icon">📋</span> Step-by-Step Log
+        </div>
+        <div class="log-box" id="step-log">
+          <div class="log-placeholder">Run the simulation to see the step-by-step execution log...</div>
+        </div>
+      </div>
+
+      <!-- State Machine Visualization -->
+      <div class="card">
+        <div class="card-title">
+          <span class="card-icon">🗺</span> State Transition Diagram
+        </div>
+        <canvas id="state-canvas" width="800" height="300"></canvas>
+      </div>
+
+      <!-- Result Box -->
+      <div class="result-card hidden" id="result-card">
+        <div class="result-icon" id="result-icon">—</div>
+        <div class="result-body">
+          <div class="state-info" id="stateInfo">—</div>
+          <pre class="solution-box" id="solutionBox"></pre>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================= THEORY SECTION ========================= -->
+  <section class="section" id="theory">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Theory — The Halting Problem</h2>
+        <p class="section-desc">Understanding why exact solutions aren't always possible</p>
+      </div>
+
+      <div class="theory-grid">
+        <div class="theory-card">
+          <div class="theory-icon">✔</div>
+          <h3>Halting Machine</h3>
+          <p>When the Turing Machine <strong>halts</strong>, the result (accept or reject) is determined with <strong>100% exactness</strong>. No approximation is needed — the computation terminates in finite steps.</p>
+        </div>
+        <div class="theory-card">
+          <div class="theory-icon">⚠</div>
+          <h3>Non-Halting Machine</h3>
+          <p>When the TM loops indefinitely, the Halting Problem proves that <strong>no algorithm can determine the outcome</strong>. Our system applies a <strong>step-limited bounded execution</strong> strategy as a practical approximation.</p>
+        </div>
+        <div class="theory-card">
+          <div class="theory-icon">🧠</div>
+          <h3>Halting Problem (Turing, 1936)</h3>
+          <p>There exists <strong>no general algorithm</strong> that can determine, for every (program, input) pair, whether the program halts. This is a fundamental limit of computation — proven by contradiction using diagonalization.</p>
+        </div>
+        <div class="theory-card">
+          <div class="theory-icon">🔄</div>
+          <h3>DFA / NFA → TM Conversion</h3>
+          <p>Every DFA/NFA has an equivalent Turing Machine. The TM uses its tape to simulate the finite automaton — reading input left-to-right, transitioning states, and halting in an accept or reject state.</p>
+        </div>
+      </div>
+
+      <!-- Comparison Table -->
+      <div class="card mt-40">
+        <div class="card-title">
+          <span class="card-icon">📊</span> Execution Case Comparison
+        </div>
+        <div class="table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Case</th>
+                <th>Machine Behavior</th>
+                <th>Result Type</th>
+                <th>Output</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="row-accept">
+                <td><span class="tag tag-green">✅ ACCEPT</span></td>
+                <td>Machine halts in accept state</td>
+                <td><strong>Exact Result</strong></td>
+                <td>String is ACCEPTED</td>
+              </tr>
+              <tr class="row-reject">
+                <td><span class="tag tag-red">❌ REJECT</span></td>
+                <td>Machine halts in reject state</td>
+                <td><strong>Exact Result</strong></td>
+                <td>String is REJECTED</td>
+              </tr>
+              <tr class="row-loop">
+                <td><span class="tag tag-yellow">⚠ LOOP</span></td>
+                <td>Machine does not halt (step limit reached)</td>
+                <td><strong>Approximate Result</strong></td>
+                <td>Possible infinite loop — bounded execution applied</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>Theory of Computation Project &mdash; <strong>Automata to Turing Machine Simulator</strong></p>
+      <p class="footer-sub">Demonstrates Halting Problem &bull; DFA/NFA to TM Conversion &bull; Step-Limited Execution</p>
+    </div>
+  </footer>
+
+  <script src="script.js?v=6"></script>
+</body>
+</html>
